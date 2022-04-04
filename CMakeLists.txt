@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.13)
 project(aurora_test)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -12,6 +12,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cli11)
 
+# no tests please
+set(EXPECTED_BUILD_TESTS OFF CACHE BOOL "")
 FetchContent_Declare(
         expected
         GIT_REPOSITORY https://github.com/TartanLlama/expected
