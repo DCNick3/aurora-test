@@ -20,15 +20,12 @@ FetchContent_Declare(
         BUILD_COMMAND ""
 )
 FetchContent_MakeAvailable(expected)
-#add_library(expected INTERFACE)
-#target_include_directories(expected INTERFACE ${expected_SOURCE_DIR}/include)
 
-
-add_executable(aurora_test
+add_executable(mycheckperm
     main.cpp
     unix.cpp
 )
-target_link_libraries(aurora_test
+target_link_libraries(mycheckperm
     expected
     CLI11::CLI11
 )
