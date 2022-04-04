@@ -8,6 +8,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <grp.h>
 
@@ -65,4 +66,49 @@ tl::expected<user_identity, error> parse_identity(std::string const& username, s
     uint32_t gid = group_info.gr_gid;
 
     return user_identity {uid, gid};
+}
+
+tl::expected<file_stat, error> stat_file(std::filesystem::path const& path) {
+    struct stat buf {};
+    int r = lstat(path.c_str(), &buf);
+    if (r != 0) {
+        return tl::make_unexpected(error::posix("lstat of " + path.string(), strerror(errno)));
+    }
+
+    file_stat res {};
+
+    auto mod = buf.st_mode;
+
+    if (S_ISDIR(mod))
+        res.kind = file_kind::directory;
+    else if (S_ISREG(mod))
+        res.kind = file_kind::regular;
+    else
+        res.kind = file_kind::other;
+
+    if (mod & S_IRUSR)
+        res.mod.owner |= file_mod_one::read;
+    if (mod & S_IWUSR)
+        res.mod.owner |= file_mod_one::write;
+    if (mod & S_IXUSR)
+        res.mod.owner |= file_mod_one::execute;
+
+    if (mod & S_IRGRP)
+        res.mod.group |= file_mod_one::read;
+    if (mod & S_IWGRP)
+        res.mod.group |= file_mod_one::write;
+    if (mod & S_IXGRP)
+        res.mod.group |= file_mod_one::execute;
+
+    if (mod & S_IROTH)
+        res.mod.world |= file_mod_one::read;
+    if (mod & S_IWOTH)
+        res.mod.world |= file_mod_one::write;
+    if (mod & S_IXOTH)
+        res.mod.world |= file_mod_one::execute;
+
+    res.owner_uid = buf.st_uid;
+    res.owner_gid = buf.st_gid;
+
+    return res;
 }
