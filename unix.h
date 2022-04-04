@@ -50,7 +50,10 @@ struct file_mod {
 };
 
 inline std::ostream &operator<<(std::ostream &os, file_mod const &m) {
-    return os << m.owner << m.group << m.world;
+    return os
+        << m.owner
+        << m.group
+        << m.world;
 }
 
 enum class file_kind {
@@ -62,7 +65,7 @@ enum class file_kind {
 inline std::ostream &operator<<(std::ostream &os, file_kind const &m) {
     switch (m) {
         case file_kind::regular:
-            return os << "-";
+            return os << "f";
         case file_kind::directory:
             return os << "d";
         default:
@@ -78,8 +81,30 @@ struct file_stat {
 };
 
 inline std::ostream &operator<<(std::ostream &os, file_stat const &m) {
-    return os << m.kind << m.mod << " " << m.owner_uid << " " << m.owner_gid;
+    return os
+        << m.kind
+        << m.mod
+        << " "
+
+        << std::setfill(' ')
+        << std::setw(4)
+        << m.owner_uid
+
+        << " "
+
+        << std::setfill(' ')
+        << std::setw(4)
+        << m.owner_gid;
 }
 
 
 tl::expected<file_stat, error> stat_file(std::filesystem::path const& path);
+
+inline file_mod_one get_access(file_stat const& file, user_identity const& user) {
+    if (file.owner_uid == user.uid)
+        return file.mod.owner;
+    else if (file.owner_gid == user.gid)
+        return file.mod.group;
+    else
+        return file.mod.world;
+}
